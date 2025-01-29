@@ -5,6 +5,8 @@ class StringConstants {
   static const addTask = 'Add Task';
   static const editTask = 'Edit Task';
   static const synced = 'Synced';
+  static const online = 'Online';
+  static const offLine = 'Offline';
   static const pendingSync = 'Pending Sync';
   static const taskSuccess = 'Task synced successfully!';
   static const taskAdded = 'Task added successfully!';

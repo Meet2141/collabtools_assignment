@@ -5,9 +5,10 @@ import '../../data/models/task_model.dart';
 import '../../logic/bloc/todo_bloc.dart';
 import '../../logic/bloc/todo_event.dart';
 import '../../logic/bloc/todo_state.dart';
+import '../../logic/network/bloc/network_bloc.dart';
+import '../../logic/network/bloc/network_state.dart';
 import '../widgets/task_item.dart';
 
-/// HomeScreen - Displays the Home Screen with task management
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -19,22 +20,35 @@ class HomeScreen extends StatelessWidget {
         listener: (context, state) {
           if (state is TodoAdded) {
             _showSnackBar(context, StringConstants.taskAdded);
-          } else if (state is TodoUpdated) {
+          }
+          if (state is TodoUpdated) {
             _showSnackBar(context, StringConstants.taskUpdated);
-          } else if (state is TodoDeleted) {
+          }
+          if (state is TodoDeleted) {
             _showSnackBar(context, StringConstants.taskDeleted);
-          } else if (state is TodoCompleted) {
+          }
+          if (state is TodoCompleted) {
             _showSnackBar(context, StringConstants.taskCompleted);
-          } else if (state is TodoUnselected) {
+          }
+          if (state is TodoUnselected) {
             _showSnackBar(context, StringConstants.taskMarkedAsIncomplete);
           }
         },
         builder: (context, state) {
-          if (state is TodoLoading) return _loadingIndicator();
-          if (state is TodoLoaded) {
-            return state.tasks.isEmpty ? _noTasksMessage() : _taskList(state.tasks, context);
-          }
-          return _loadingIndicator();
+          return Column(
+            children: [
+              _networkStatusIndicator(context),
+              Expanded(
+                child: state is TodoLoading
+                    ? _loadingIndicator()
+                    : state is TodoLoaded
+                        ? state.tasks.isEmpty
+                            ? _noTasksMessage()
+                            : _taskList(state.tasks, context)
+                        : _loadingIndicator(),
+              ),
+            ],
+          );
         },
       ),
       floatingActionButton: _buildFloatingActionButtons(context),
@@ -85,6 +99,7 @@ class HomeScreen extends StatelessWidget {
   Widget _taskList(List<TaskModel> tasks, BuildContext context) {
     return ListView.builder(
       itemCount: tasks.length,
+      padding: EdgeInsets.only(top: 8),
       itemBuilder: (context, index) {
         return TaskItem(
           task: tasks[index],
@@ -192,13 +207,31 @@ class HomeScreen extends StatelessWidget {
     ];
   }
 
+  Widget _networkStatusIndicator(BuildContext context) {
+    return SizedBox(
+      height: 30,
+      width: double.infinity,
+      child: BlocBuilder<NetworkStatusBloc, NetworkStatusState>(
+        builder: (context, state) {
+          return Container(
+            alignment: Alignment.center,
+            color: state is NetworkOnline ? Colors.green : Colors.red,
+            child: Text(
+              state is NetworkOnline ? StringConstants.online : StringConstants.offLine,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 }
